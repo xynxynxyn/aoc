@@ -3,13 +3,20 @@
 #include <stdio.h>
 #include <string.h>
 
-bool contains(uint32_t fst_l, uint32_t fst_u, uint32_t snd_l, uint32_t snd_u)
+struct Interval {
+    uint32_t lower;
+    uint32_t upper;
+};
+
+bool contains(struct Interval* fst, struct Interval* snd)
 {
-    return fst_l <= snd_l && fst_u >= snd_u;
+    return fst->lower <= snd->lower && fst->upper >= snd->upper;
 }
 
-bool overlaps(uint32_t fst_l, uint32_t fst_u, uint32_t snd_l, uint32_t snd_u) {
-    return (fst_u >= snd_l && fst_l <= snd_l) || (snd_u >= fst_l && snd_l <= fst_l);
+bool overlaps(struct Interval* fst, struct Interval* snd)
+{
+    return (fst->upper >= snd->lower && fst->lower <= snd->lower)
+        || (snd->upper >= fst->lower && snd->lower <= fst->upper);
 }
 
 int main(int argc, char** argv)
@@ -34,17 +41,17 @@ int main(int argc, char** argv)
         // replace newline with null terminator
         buffer[strcspn(buffer, "\n")] = 0;
         // sscanf stuff
-        uint32_t elf1_l;
-        uint32_t elf1_u;
-        uint32_t elf2_l;
-        uint32_t elf2_u;
-        sscanf(buffer, "%d-%d,%d-%d", &elf1_l, &elf1_u, &elf2_l, &elf2_u);
+        struct Interval elf1;
+        struct Interval elf2;
+        if (sscanf(buffer, "%d-%d,%d-%d", &elf1.lower, &elf1.upper, &elf2.lower, &elf2.upper) != 4) {
+            fprintf(stderr, "invalid format %s\n", buffer);
+        }
 
-        if (contains(elf1_l, elf1_u, elf2_l, elf2_u) || contains(elf2_l, elf2_u, elf1_l, elf1_u)) {
+        if (contains(&elf1, &elf2) || contains(&elf2, &elf1)) {
             contained_ct++;
         }
 
-        if (overlaps(elf1_l, elf1_u, elf2_l, elf2_u)) {
+        if (overlaps(&elf1, &elf2)) {
             overlap_ct++;
         }
     }
