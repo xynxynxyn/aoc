@@ -24,5 +24,6 @@ int main(int argc, char** argv)
         // sscanf stuff
     }
 
+    fclose(fp);
     return 0;
 }
