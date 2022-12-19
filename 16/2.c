@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define STR_LEN 1024
-#define QUEUE_SIZE 1000000
+#define QUEUE_SIZE 1024
 #define DYN_PROG_SIZE 256
 #define TIME 26
 
@@ -42,60 +42,82 @@ bool add_connection_by_id(struct Valve* valve, struct Valve* valves, size_t valv
     return false;
 }
 
+struct Queue {
+    void* array[QUEUE_SIZE];
+    size_t first;
+    size_t length;
+};
+
+void* queue_pop(struct Queue* queue)
+{
+    if (queue->length == 0) {
+        fprintf(stderr, "trying to pop from empty queue\n");
+        exit(1);
+    }
+
+    struct Valve* v = queue->array[queue->first];
+    queue->first = (queue->first + 1) % QUEUE_SIZE;
+    queue->length--;
+    return v;
+}
+
+void queue_push(struct Queue* queue, void* valve)
+{
+    if (queue->length == QUEUE_SIZE) {
+        fprintf(stderr, "queue ran out of space\n");
+        exit(1);
+    }
+    queue->array[(queue->first + queue->length) % QUEUE_SIZE] = valve;
+    queue->length++;
+}
+
+bool queue_contains(struct Queue* queue, void* valve)
+{
+    for (int32_t i = 0; i < queue->length; i++) {
+        if (queue->array[(queue->first + i) % QUEUE_SIZE] == valve) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int32_t calculate_distance(struct Valve* start, struct Valve* target)
 {
-#ifdef DYNAMIC
     static int32_t distances[DYN_PROG_SIZE][DYN_PROG_SIZE] = { 0 };
 
     if (distances[start->id][target->id] != 0) {
         return distances[start->id][target->id];
     }
-#endif
 
     // do breadth first search to measure distance
-    const size_t queue_size = QUEUE_SIZE;
-    struct Valve* queue[queue_size];
-    queue[0] = start;
-    size_t queue_len = 1;
-    size_t first = 0;
+    struct Queue queue = { 0 };
+    struct Queue depth_queue = { 0 };
+    queue_push(&queue, start);
+    queue_push(&depth_queue, 0);
     int32_t depth = 0;
-    size_t elems_to_depth_increase = 1;
-    size_t next_elems_to_depth_increase = 0;
+
     struct Valve* current;
-    while (queue_len > 0) {
+    while (queue.length != 0) {
         // pop
-        current = queue[first];
-        queue_len--;
-        first++;
-        first %= queue_size;
+        current = queue_pop(&queue);
+        depth = (intptr_t)queue_pop(&depth_queue) % INT32_MAX;
 
         // search
         if (current == target) {
             break;
         }
 
-        next_elems_to_depth_increase += current->connections_len;
-        if (--elems_to_depth_increase == 0) {
-            elems_to_depth_increase = next_elems_to_depth_increase;
-            next_elems_to_depth_increase = 0;
-            depth++;
-        }
-
         for (size_t i = 0; i < current->connections_len; i++) {
-            size_t next_index = (first + queue_len) % queue_size;
-            queue[(first + queue_len) % queue_size] = current->connections[i];
-            queue_len++;
-            if (queue_len > queue_size) {
-                fprintf(stderr, "queue is too small\n");
-                exit(1);
+            if (!queue_contains(&queue, current->connections[i])) {
+                queue_push(&queue, current->connections[i]);
+                queue_push(&depth_queue, (void*)(intptr_t)depth + 1);
             }
         }
     }
 
-#ifdef DYNAMIC
     distances[start->id][current->id] = depth;
-#endif
-    return depth;
+    return (int32_t)depth;
 }
 
 int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* valves,
@@ -130,6 +152,11 @@ int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* va
         return 0;
     }
 
+    bool opening_occured = false;
+    int32_t generated_flow = 0;
+    char fmt_y[128] = { 0 };
+    char fmt_e[128] = { 0 };
+
     // update step count
     remaining_time -= steps;
     you.steps_remaining -= steps;
@@ -138,15 +165,12 @@ int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* va
     // due to opening a valve
     remaining_time--;
 
-    bool opening_occured = false;
-    int32_t generated_flow = 0;
-    char fmt_y[128] = { 0 };
-    char fmt_e[128] = { 0 };
     if (you.steps_remaining == 0 && you.goal != NULL) {
         new_valve_status[you.goal->id] = true;
         int32_t flow = you.goal->flow_rate * remaining_time;
         generated_flow += flow;
-        sprintf(fmt_y, " -> y%s@%d+%d(%df*%dm)", you.goal->name, TIME - remaining_time, flow, you.goal->flow_rate, remaining_time);
+        sprintf(fmt_y, " -> y%s@%d+%d(%df*%dm)",
+            you.goal->name, TIME - remaining_time, flow, you.goal->flow_rate, remaining_time);
         you.cur = you.goal;
         you.goal = NULL;
     } else if (you.steps_remaining > 0 && you.goal != NULL) {
@@ -157,14 +181,33 @@ int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* va
         new_valve_status[elephant.goal->id] = true;
         int32_t flow = elephant.goal->flow_rate * remaining_time;
         generated_flow += flow;
-        sprintf(fmt_e, " -> e%s@%d+%d(%df*%dm)", elephant.goal->name, TIME - remaining_time, flow, elephant.goal->flow_rate, remaining_time);
+        sprintf(fmt_e, " -> e%s@%d+%d(%df*%dm)",
+            elephant.goal->name, TIME - remaining_time, flow, elephant.goal->flow_rate, remaining_time);
         elephant.cur = elephant.goal;
         elephant.goal = NULL;
     } else if (elephant.steps_remaining > 0 && elephant.goal != NULL) {
         elephant.steps_remaining--;
     }
 
+    // determining next steps
     int32_t max_flow = 0;
+    size_t remaining_valves = 0;
+    for (size_t v = 0; v < valves_len; v++) {
+        if (valves[v].flow_rate > 0 && !new_valve_status[v]
+            && elephant.goal != &valves[v] && you.goal != &valves[v]) {
+            remaining_valves++;
+        }
+    }
+    if (remaining_valves == 0 && (elephant.goal != NULL || you.goal != NULL)) {
+        // no remaining valves for anyone to go to
+        // just keep simulating without assigning him
+        char tmp_path[STR_LEN] = { 0 };
+        int32_t flow = _calc_max_flow(you, elephant, valves, valves_len, new_valve_status, remaining_time, tmp_path);
+        if (flow > max_flow) {
+            max_flow = flow;
+            strncpy(rec_path, tmp_path, STR_LEN - 1);
+        }
+    }
     if (you.goal == NULL && elephant.goal != NULL) {
         // find goal for you
         for (size_t v = 0; v < valves_len; v++) {
@@ -184,7 +227,6 @@ int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* va
         }
     } else if (you.goal != NULL && elephant.goal == NULL) {
         // find goal for the elephant
-        // find goal for the elephant
         for (size_t v = 0; v < valves_len; v++) {
             if (new_valve_status[v] || valves[v].flow_rate == 0 || you.goal == &valves[v]) {
                 // if the valve has no flow, is already open or the elephant is targetting at, don't
@@ -201,17 +243,7 @@ int32_t _calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* va
             }
         }
     } else if (you.goal == NULL && elephant.goal == NULL) {
-        size_t remaining_valves = 0;
-        for (size_t v = 0; v < valves_len; v++) {
-            if (valves[v].flow_rate > 0 && !new_valve_status[v]) {
-                remaining_valves++;
-            }
-        }
-
-        if (remaining_valves == 0) {
-            // no valves remaining that need to be opened
-            // do nothing
-        } else if (remaining_valves == 1) {
+        if (remaining_valves == 1) {
             // only one closed valve remaining
             for (size_t v = 0; v < valves_len; v++) {
                 if (valves[v].flow_rate > 0 && !new_valve_status[v]) {
@@ -299,7 +331,7 @@ int32_t calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* val
             if (valves[v0].flow_rate == 0) {
                 break;
             }
-            if (valves[v1].flow_rate == 0 || v0 == v1) {
+            if (valves[v1].flow_rate == 0) {
                 continue;
             }
 
@@ -314,18 +346,6 @@ int32_t calc_max_flow(struct Actor you, struct Actor elephant, struct Valve* val
             if (flow > max_flow) {
                 max_flow = flow;
                 strncpy(rec_path, tmp_path_0, STR_LEN - 1);
-            }
-
-            you.goal = &valves[v1];
-            you.steps_remaining = calculate_distance(you.cur, you.goal);
-            elephant.goal = &valves[v0];
-            elephant.steps_remaining = calculate_distance(elephant.cur, elephant.goal);
-            char tmp_path_1[STR_LEN] = { 0 };
-            flow = _calc_max_flow(you, elephant, valves, valves_len, valve_status, remaining_time, tmp_path_1);
-
-            if (flow > max_flow) {
-                max_flow = flow;
-                strncpy(rec_path, tmp_path_1, STR_LEN - 1);
             }
         }
     }
