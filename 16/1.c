@@ -5,7 +5,7 @@
 #include <string.h>
 
 #define STR_LEN 512
-#define QUEUE_SIZE 1000000
+#define QUEUE_SIZE 1024
 #define DYN_PROG_SIZE 256
 #define TIME 30
 
@@ -42,6 +42,46 @@ bool add_connection_by_id(struct Valve* valve, struct Valve* valves, size_t valv
     return false;
 }
 
+struct Queue {
+    void* array[QUEUE_SIZE];
+    size_t first;
+    size_t length;
+};
+
+void* queue_pop(struct Queue* queue)
+{
+    if (queue->length == 0) {
+        fprintf(stderr, "trying to pop from empty queue\n");
+        exit(1);
+    }
+
+    struct Valve* v = queue->array[queue->first];
+    queue->first = (queue->first + 1) % QUEUE_SIZE;
+    queue->length--;
+    return v;
+}
+
+void queue_push(struct Queue* queue, void* valve)
+{
+    if (queue->length == QUEUE_SIZE) {
+        fprintf(stderr, "queue ran out of space\n");
+        exit(1);
+    }
+    queue->array[(queue->first + queue->length) % QUEUE_SIZE] = valve;
+    queue->length++;
+}
+
+bool queue_contains(struct Queue* queue, void* valve)
+{
+    for (int32_t i = 0; i < queue->length; i++) {
+        if (queue->array[(queue->first + i) % QUEUE_SIZE] == valve) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int32_t calculate_distance(struct Valve* start, struct Valve* target)
 {
 #ifdef DYNAMIC
@@ -53,41 +93,27 @@ int32_t calculate_distance(struct Valve* start, struct Valve* target)
 #endif
 
     // do breadth first search to measure distance
-    const size_t queue_size = QUEUE_SIZE;
-    struct Valve* queue[queue_size];
-    queue[0] = start;
-    size_t queue_len = 1;
-    size_t first = 0;
+    struct Queue queue = { 0 };
+    struct Queue depth_queue = { 0 };
+    queue_push(&queue, start);
+    queue_push(&depth_queue, 0);
     int32_t depth = 0;
-    size_t elems_to_depth_increase = 1;
-    size_t next_elems_to_depth_increase = 0;
+
     struct Valve* current;
-    while (queue_len > 0) {
+    while (queue.length != 0) {
         // pop
-        current = queue[first];
-        queue_len--;
-        first++;
-        first %= queue_size;
+        current = queue_pop(&queue);
+        depth = (intptr_t)queue_pop(&depth_queue) % INT32_MAX;
 
         // search
         if (current == target) {
             break;
         }
 
-        next_elems_to_depth_increase += current->connections_len;
-        if (--elems_to_depth_increase == 0) {
-            elems_to_depth_increase = next_elems_to_depth_increase;
-            next_elems_to_depth_increase = 0;
-            depth++;
-        }
-
         for (size_t i = 0; i < current->connections_len; i++) {
-            size_t next_index = (first + queue_len) % queue_size;
-            queue[(first + queue_len) % queue_size] = current->connections[i];
-            queue_len++;
-            if (queue_len > queue_size) {
-                fprintf(stderr, "queue is too small\n");
-                exit(1);
+            if (!queue_contains(&queue, current->connections[i])) {
+                queue_push(&queue, current->connections[i]);
+                queue_push(&depth_queue, (void*)(intptr_t)depth + 1);
             }
         }
     }
@@ -95,7 +121,7 @@ int32_t calculate_distance(struct Valve* start, struct Valve* target)
 #ifdef DYNAMIC
     distances[start->id][current->id] = depth;
 #endif
-    return depth;
+    return (int32_t)depth;
 }
 
 int32_t _calc_max_flow(struct Actor you, struct Valve* valves,
