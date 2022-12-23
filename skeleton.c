@@ -1,6 +1,10 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#define BUFFER_SIZE 1024
 
 int main(int argc, char** argv)
 {
@@ -16,9 +20,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    const size_t buffer_size = 256;
-    char buffer[buffer_size];
-    while (fgets(buffer, buffer_size, fp)) {
+    char buffer[BUFFER_SIZE];
+    while (fgets(buffer, BUFFER_SIZE, fp)) {
         // replace newline with null terminator
         buffer[strcspn(buffer, "\n")] = 0;
         // sscanf stuff
