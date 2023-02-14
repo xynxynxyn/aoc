@@ -2,8 +2,8 @@
 set -e
 
 ml_file="day$1.ml"
-test_file="day$1_test.txt"
-input_file="day$1_input.txt"
+test_file="inputs/day$1_test.txt"
+input_file="inputs/day$1_input.txt"
 
 # Build
 ocamlc util.mli
