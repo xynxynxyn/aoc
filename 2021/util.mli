@@ -13,6 +13,9 @@ val skip_token : string -> string -> string
 val range : int -> int -> int Seq.t
 (** produce a range of numbers *)
 
+val parse_list_of_ints : string -> int list
+val sum : int list -> int
+
 module Grid : sig
   type 'a t
 

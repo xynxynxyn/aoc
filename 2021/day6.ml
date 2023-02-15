@@ -1,10 +1,5 @@
 open Util
 
-let rec parse s =
-  match parse_int s with
-  | i, rest when rest = "" -> [ i ]
-  | i, rest -> i :: parse (skip_token "," rest)
-
 type population = (int, int) Hashtbl.t
 
 let new_pop =
@@ -57,7 +52,7 @@ let rec simulate pop days =
   else Hashtbl.fold (fun _ v acc -> acc + v) pop 0
 
 let main =
-  let fish = fold_lines Sys.argv.(1) parse |> List.hd in
+  let fish = fold_lines Sys.argv.(1) parse_list_of_ints |> List.hd in
   let pop = new_pop in
   List.iter (add_fish pop) fish;
   let pop2 = Hashtbl.copy pop in
