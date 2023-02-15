@@ -10,12 +10,6 @@ val skip_ws : string -> string
 val skip_token : string -> string -> string
 (** skip_token token s *)
 
-val range : int -> int -> int Seq.t
-(** produce a range of numbers *)
-
-val parse_list_of_ints : string -> int list
-val sum : int list -> int
-
 module Grid : sig
   type 'a t
 
@@ -35,4 +29,16 @@ module Grid : sig
   val iter : (int -> int -> 'a -> unit) -> 'a t -> unit
   (** iter (f x y elem) g 
     run the provided function on each cell in the grid *)
+end
+
+module IntList : sig
+  module Median : sig
+    type t = Single of int | Dual of int * int
+
+    val median : int list -> t
+  end
+
+  val sum : int list -> int
+  val of_string : string -> int list
+  val range : int -> int -> int list
 end

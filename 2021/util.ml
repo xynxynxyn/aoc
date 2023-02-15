@@ -25,14 +25,6 @@ let skip_ws s = String.to_seq s |> Seq.drop_while is_ws |> String.of_seq
 (** skip_token token s *)
 let skip_token token s = String.(sub s (length token) (length s - length token))
 
-let rec parse_list_of_ints s =
-  match parse_int s with
-  | i, rest when rest = "" -> [ i ]
-  | i, rest -> i :: parse_list_of_ints (skip_ws rest |> skip_token ",")
-
-let range s e = Seq.init (e - s + 1) (fun i -> i + s)
-let sum = List.fold_left (fun acc x -> acc + x) 0
-
 module Grid = struct
   type 'a t = 'a Array.t Array.t
 
@@ -47,4 +39,24 @@ module Grid = struct
 
   let iter f g =
     Array.iteri (fun y row -> Array.iteri (fun x e -> f x y e) row) g
+end
+
+module IntList = struct
+  module Median = struct
+    type t = Single of int | Dual of int * int
+
+    let median l =
+      let len = List.length l in
+      let l = List.sort Int.compare l in
+      if len mod 2 = 0 then
+        Dual (List.nth l ((len / 2) - 1), List.nth l (len / 2))
+      else Single (List.nth l (len / 2))
+  end
+
+  let sum = List.fold_left (fun acc x -> acc + x) 0
+
+  let range start stop =
+    Seq.init (stop - start + 1) (fun i -> i + start) |> List.of_seq
+
+  let of_string s = String.split_on_char ',' s |> List.map int_of_string
 end

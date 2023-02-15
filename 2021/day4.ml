@@ -2,11 +2,6 @@ open Util
 
 type field = { value : int; mutable marked : bool }
 
-let rec parse_header s =
-  match parse_int s with
-  | i, s when s = "" -> [ i ]
-  | i, s -> i :: (skip_token "," s |> parse_header)
-
 let rec parse_bingo_line s =
   match skip_ws s |> parse_int with
   | i, s when s = "" -> [ { value = i; marked = false } ]
@@ -98,7 +93,7 @@ let rec print_board board =
 
 let main =
   let lines = fold_lines Sys.argv.(1) (fun s -> s) in
-  let numbers = List.hd lines |> parse_header in
+  let numbers = List.hd lines |> IntList.of_string in
   let boards = parse_boards (List.tl lines) in
   Format.printf "part one: %d\n" (play_game numbers boards);
   Format.printf "part two: %d\n" (play_all numbers boards)

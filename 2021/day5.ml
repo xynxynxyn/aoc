@@ -20,10 +20,10 @@ let length { src = x0, y0; tgt = x1, y1 } =
 let covers ({ src = x0, y0; tgt = x1, y1 } as line) =
   if is_horizontal line && y0 = y1 then
     let x0 = min x0 x1 and x1 = max x0 x1 in
-    range x0 x1 |> Seq.map (fun x -> (x, y0))
+    IntList.range x0 x1 |> List.map (fun x -> (x, y0))
   else if is_vertical line && x0 = x1 then
     let y0 = min y0 y1 and y1 = max y0 y1 in
-    range y0 y1 |> Seq.map (fun y -> (x0, y))
+    IntList.range y0 y1 |> List.map (fun y -> (x0, y))
   else if is_diagonal line then
     (* find out what kind of diagonal *)
     let x0, y0, x1, y1 =
@@ -31,16 +31,16 @@ let covers ({ src = x0, y0; tgt = x1, y1 } as line) =
     in
     if y0 < y1 then
       (* line goes down *)
-      range 0 (length line - 1) |> Seq.map (fun i -> (x0 + i, y0 + i))
+      IntList.range 0 (length line - 1) |> List.map (fun i -> (x0 + i, y0 + i))
     else
       (* line goes up *)
-      range 0 (length line - 1) |> Seq.map (fun i -> (x0 + i, y0 - i))
+      IntList.range 0 (length line - 1) |> List.map (fun i -> (x0 + i, y0 - i))
   else raise (Failure "covers")
 
 let solve lines =
   let grid = Grid.make 1000 1000 0 in
   let mark line =
-    Seq.iter (fun (x, y) -> Grid.mut x y (fun i -> i + 1) grid) (covers line)
+    List.iter (fun (x, y) -> Grid.mut x y (fun i -> i + 1) grid) (covers line)
   in
   let () = List.iter mark lines in
   let count = ref 0 in
