@@ -24,3 +24,21 @@ let skip_ws s = String.to_seq s |> Seq.drop_while is_ws |> String.of_seq
 
 (** skip_token token s *)
 let skip_token token s = String.(sub s (length token) (length s - length token))
+
+let range s e = Seq.init (e - s + 1) (fun i -> i + s)
+
+module Grid = struct
+  type 'a t = 'a Array.t Array.t
+
+  let get x y g = g.(y).(x)
+  let set x y e g = g.(y).(x) <- e
+
+  let mut x y f g =
+    let e = get x y g in
+    set x y (f e) g
+
+  let make width height default = Array.make_matrix width height default
+
+  let iter f g =
+    Array.iteri (fun y row -> Array.iteri (fun x e -> f x y e) row) g
+end
