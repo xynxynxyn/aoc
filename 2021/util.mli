@@ -1,3 +1,5 @@
+val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
+
 val fold_lines : string -> (string -> 'a) -> 'a list
 (** fold_lines file f *)
 

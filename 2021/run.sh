@@ -7,16 +7,17 @@ input_file="inputs/day$1_input.txt"
 
 # Build
 ocamlc util.mli
-ocamlc util.ml $ml_file
 
 # Test
 if [ -f $test_file ]; then
+        ocamlc util.ml -g $ml_file
         echo "# test"
-        ./a.out $test_file
+         OCAMLRUNPARAM=b ./a.out $test_file
 fi
 
 # Input
 if [ -f $input_file ]; then
+        ocamlc util.ml $ml_file
         echo "# input"
         ./a.out $input_file
 fi

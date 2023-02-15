@@ -1,3 +1,4 @@
+let flip f y x = f x y
 (** fold_lines file f *)
 let fold_lines file f =
   let in_ch = open_in file in
