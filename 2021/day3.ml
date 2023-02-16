@@ -64,7 +64,7 @@ let part_two l =
   (find l oxygen_reduce |> bin_to_dec, find l co2_reduce |> bin_to_dec)
 
 let main =
-  let lines = fold_lines Sys.argv.(1) parse in
+  let lines = map_lines Sys.argv.(1) parse in
   let p1_gamma, p1_epsilon = part_one lines in
   Format.printf "part_one: %d, %d -> %d\n" p1_gamma p1_epsilon
     (p1_gamma * p1_epsilon);

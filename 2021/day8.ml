@@ -6,7 +6,7 @@ let parse s =
   String.split_on_char '|' s
   |> List.map (fun s ->
          String.split_on_char ' ' s
-         |> List.filter (fun s -> String.length s != 0)
+         |> List.filter (( <> ) "")
          |> List.map (fun s -> String.to_seq s |> CharSet.of_seq))
 
 let decoder codes =
@@ -74,6 +74,6 @@ let solve2 lines =
   |> IntList.sum
 
 let main =
-  let lines = fold_lines Sys.argv.(1) parse in
+  let lines = map_lines Sys.argv.(1) parse in
   solve1 lines |> Format.printf "part1: %d\n";
   solve2 lines |> Format.printf "part2: %d\n"

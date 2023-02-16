@@ -30,7 +30,7 @@ let part_two l =
   loop l (0, 0) 0
 
 let main =
-  let lines = fold_lines Sys.argv.(1) parse in
+  let lines = map_lines Sys.argv.(1) parse in
   let p1_x, p1_y = part_one lines in
   let p2_x, p2_y = part_two lines in
   Format.printf "part_one: (%d, %d) -> %d\n" p1_x p1_y (p1_x * p1_y);

@@ -13,6 +13,6 @@ let rec part_two l =
   | _ -> 0
 
 let main =
-  let lines = fold_lines Sys.argv.(1) int_of_string in
+  let lines = map_lines Sys.argv.(1) int_of_string in
   part_one lines |> Format.printf "part_one: %d\n";
   part_two lines |> Format.printf "part_two: %d\n"

@@ -1,6 +1,6 @@
 val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 
-val fold_lines : string -> (string -> 'a) -> 'a list
+val map_lines : string -> (string -> 'a) -> 'a list
 (** fold_lines file f *)
 
 val parse_int : string -> int * string
@@ -31,6 +31,9 @@ module Grid : sig
   val iter : (int -> int -> 'a -> unit) -> 'a t -> unit
   (** iter (f x y elem) g 
     run the provided function on each cell in the grid *)
+
+  val neighbors : int -> int -> 'a t -> 'a list
+  val of_list_list : 'a list list -> 'a t
 end
 
 module IntList : sig
@@ -43,4 +46,25 @@ module IntList : sig
   val sum : int list -> int
   val of_string : string -> int list
   val range : int -> int -> int list
+end
+
+module Point : sig
+  type t = int * int
+
+  val x : t -> int
+  val y : t -> int
+  val compare : t -> t -> int
+end
+
+module Matrix : sig
+  type 'a t = 'a list list
+
+  val dimensions : 'a t -> int * int
+  val get : int * int -> 'a t -> 'a
+  val coords : 'a t -> (int * int) list
+  val neighbor_coords : int * int -> 'a t -> (int * int) list
+  val neighbors : int * int -> 'a t -> 'a list
+  val map : (int * int -> 'a -> 'b) -> 'a t -> 'b t
+  val filteri : (int * int -> 'a -> bool) -> 'a t -> 'a list
+  val filter : ('a -> bool) -> 'a t -> 'a list
 end

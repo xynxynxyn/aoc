@@ -21,7 +21,7 @@ let brute_force crabs =
   loop 0 Int.max_int crabs
 
 let main =
-  let crabs = fold_lines Sys.argv.(1) IntList.of_string |> List.hd in
+  let crabs = map_lines Sys.argv.(1) IntList.of_string |> List.hd in
   let cost =
     match IntList.Median.median crabs with
     | IntList.Median.Single g -> fuel_cost g crabs

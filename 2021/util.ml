@@ -1,6 +1,6 @@
 let flip f y x = f x y
-(** fold_lines file f *)
-let fold_lines file f =
+
+let map_lines file f =
   let in_ch = open_in file in
   let rec loop () =
     try
@@ -40,6 +40,18 @@ module Grid = struct
 
   let iter f g =
     Array.iteri (fun y row -> Array.iteri (fun x e -> f x y e) row) g
+
+  let neighbors x y g =
+    List.concat
+      [
+        (if x > 0 then [ g.(y).(x - 1) ] else []);
+        (if x < Array.length g.(0) - 1 then [ g.(y).(x + 1) ] else []);
+        (if y > 0 then [ g.(y - 1).(x) ] else []);
+        (if y < Array.length g - 1 then [ g.(y + 1).(x) ] else []);
+      ]
+
+  let of_list_list ll =
+    Array.init (List.length ll) (fun i -> List.nth ll i |> Array.of_list)
 end
 
 module IntList = struct
@@ -60,4 +72,59 @@ module IntList = struct
     Seq.init (stop - start + 1) (fun i -> i + start) |> List.of_seq
 
   let of_string s = String.split_on_char ',' s |> List.map int_of_string
+end
+
+module Point = struct
+  type t = int * int
+
+  let x (x, _) = x
+  let y (_, y) = y
+
+  let compare p0 p1 =
+    let x_comp = compare (x p0) (x p1) in
+    let y_comp = compare (y p0) (y p1) in
+    if x_comp = 0 then y_comp else x_comp
+end
+
+module Matrix = struct
+  type 'a t = 'a list list
+
+  let dimensions m = (List.length (List.nth m 0), List.length m)
+  let get (x, y) m = List.nth (List.nth m y) x
+
+  let coords m =
+    let width, height = dimensions m in
+    IntList.range 0 (width - 1)
+    |> List.map (fun x ->
+           IntList.range 0 (height - 1) |> List.map (fun y -> (x, y)))
+    |> List.flatten
+
+  let neighbor_coords (x, y) m =
+    let height = List.length m in
+    let width = List.length (List.nth m 0) in
+    List.filter
+      (fun (x, y) -> 0 <= x && x < width && 0 <= y && y < height)
+      [ (x - 1, y); (x + 1, y); (x, y - 1); (x, y + 1) ]
+
+  let neighbors p m = neighbor_coords p m |> List.map (Fun.flip get m)
+
+  let map f m =
+    let rec map_row y f m =
+      match m with
+      | [] -> []
+      | row :: tl ->
+          List.mapi (fun x e -> f (x, y) e) row :: map_row (y + 1) f tl
+    in
+    map_row 0 f m
+
+  let filteri f m =
+    let rec filter_row y f m =
+      match m with
+      | [] -> []
+      | row :: tl ->
+          List.filteri (fun x e -> f (x, y) e) row :: filter_row (y + 1) f tl
+    in
+    filter_row 0 f m |> List.flatten
+
+  let filter f m = filteri (fun _ e -> f e) m
 end

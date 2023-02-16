@@ -52,7 +52,7 @@ let rec simulate pop days =
   else Hashtbl.fold (fun _ v acc -> acc + v) pop 0
 
 let main =
-  let fish = fold_lines Sys.argv.(1) IntList.of_string |> List.hd in
+  let fish = map_lines Sys.argv.(1) IntList.of_string |> List.hd in
   let pop = new_pop in
   List.iter (add_fish pop) fish;
   let pop2 = Hashtbl.copy pop in

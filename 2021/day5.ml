@@ -48,6 +48,6 @@ let solve lines =
   !count
 
 let main =
-  let lines = fold_lines Sys.argv.(1) parse_line in
+  let lines = map_lines Sys.argv.(1) parse_line in
   Format.printf "part1: %d\n" (List.filter is_aligned lines |> solve);
   Format.printf "part2: %d\n" (solve lines)

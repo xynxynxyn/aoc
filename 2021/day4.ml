@@ -92,7 +92,7 @@ let rec print_board board =
       print_board tl
 
 let main =
-  let lines = fold_lines Sys.argv.(1) (fun s -> s) in
+  let lines = map_lines Sys.argv.(1) (fun s -> s) in
   let numbers = List.hd lines |> IntList.of_string in
   let boards = parse_boards (List.tl lines) in
   Format.printf "part one: %d\n" (play_game numbers boards);
