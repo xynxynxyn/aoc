@@ -54,18 +54,34 @@ module Grid = struct
     Array.init (List.length ll) (fun i -> List.nth ll i |> Array.of_list)
 end
 
-module IntList = struct
-  module Median = struct
-    type t = Single of int | Dual of int * int
+module Median = struct
+  module type S = sig
+    type elt
+    type t = Single of elt | Dual of elt * elt
 
-    let median l =
+    val of_list : elt list -> t
+  end
+
+  module type OrderedType = sig
+    type t
+
+    val compare : t -> t -> int
+  end
+
+  module Make (Ord : OrderedType) = struct
+    type elt = Ord.t
+    type t = Single of elt | Dual of elt * elt
+
+    let of_list l =
       let len = List.length l in
-      let l = List.sort Int.compare l in
+      let l = List.sort Ord.compare l in
       if len mod 2 = 0 then
         Dual (List.nth l ((len / 2) - 1), List.nth l (len / 2))
       else Single (List.nth l (len / 2))
   end
+end
 
+module IntList = struct
   let sum = List.fold_left (fun acc x -> acc + x) 0
 
   let range start stop =

@@ -36,13 +36,24 @@ module Grid : sig
   val of_list_list : 'a list list -> 'a t
 end
 
-module IntList : sig
-  module Median : sig
-    type t = Single of int | Dual of int * int
+module Median : sig
+  module type S = sig
+    type elt
+    type t = Single of elt | Dual of elt * elt
 
-    val median : int list -> t
+    val of_list : elt list -> t
   end
 
+  module type OrderedType = sig
+    type t
+
+    val compare : t -> t -> int
+  end
+
+  module Make (O : OrderedType) : S with type elt = O.t
+end
+
+module IntList : sig
   val sum : int list -> int
   val of_string : string -> int list
   val range : int -> int -> int list

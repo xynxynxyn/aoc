@@ -1,6 +1,8 @@
 open Util
+module IntMedian = Median.Make (Int)
 
-let fuel_cost goal crabs = List.map (fun x -> abs (goal - x)) crabs |> IntList.sum
+let fuel_cost goal crabs =
+  List.map (fun x -> abs (goal - x)) crabs |> IntList.sum
 
 let exp_fuel_cost goal crabs =
   List.map
@@ -23,10 +25,10 @@ let brute_force crabs =
 let main =
   let crabs = map_lines Sys.argv.(1) IntList.of_string |> List.hd in
   let cost =
-    match IntList.Median.median crabs with
-    | IntList.Median.Single g -> fuel_cost g crabs
-    | IntList.Median.Dual (g0, g1) ->
-        min (fuel_cost g0 crabs) (fuel_cost g1 crabs)
+    let open IntMedian in
+    match IntMedian.of_list crabs with
+    | Single g -> fuel_cost g crabs
+    | Dual (g0, g1) -> min (fuel_cost g0 crabs) (fuel_cost g1 crabs)
   in
   Format.printf "part1: %d\n" cost;
   brute_force crabs |> Format.printf "part2: %d\n"
