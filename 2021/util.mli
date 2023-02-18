@@ -1,7 +1,8 @@
 val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
 
 val map_lines : string -> (string -> 'a) -> 'a list
-(** fold_lines file f *)
+
+val lines : string -> string list
 
 val parse_int : string -> int * string
 (** parse_int s *)
@@ -53,6 +54,27 @@ module Median : sig
   module Make (O : OrderedType) : S with type elt = O.t
 end
 
+module Counter : sig
+  module type S = sig
+    type key
+    type t
+
+    val empty : t
+    val incr : key -> t -> t
+    val count : key -> t -> int Option.t
+    val cardinal : t -> int
+    val of_list : key list -> t
+  end
+
+  module type OrderedType = sig
+    type t
+
+    val compare : t -> t -> int
+  end
+
+  module Make (Ord : OrderedType) : S with type key = Ord.t
+end
+
 module IntList : sig
   val sum : int list -> int
   val of_string : string -> int list
@@ -74,6 +96,7 @@ module Matrix : sig
   val get : int * int -> 'a t -> 'a
   val coords : 'a t -> (int * int) list
   val neighbor_coords : int * int -> 'a t -> (int * int) list
+  val all_neighbor_coords : int * int -> 'a t -> (int * int) list
   val neighbors : int * int -> 'a t -> 'a list
   val map : (int * int -> 'a -> 'b) -> 'a t -> 'b t
   val filteri : (int * int -> 'a -> bool) -> 'a t -> 'a list

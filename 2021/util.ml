@@ -1,17 +1,18 @@
 let flip f y x = f x y
 
-let map_lines file f =
+let lines file =
   let in_ch = open_in file in
   let rec loop () =
     try
       let next = input_line in_ch in
-      f next :: loop ()
+      next :: loop ()
     with End_of_file ->
       close_in in_ch;
       []
   in
   loop ()
 
+let map_lines file f = List.map f (lines file)
 let is_digit = function '0' .. '9' -> true | _ -> false
 let is_ws = function ' ' | '\t' | '\r' | '\n' -> true | _ -> false
 
@@ -81,6 +82,41 @@ module Median = struct
   end
 end
 
+module Counter = struct
+  module type S = sig
+    type key
+    type t
+
+    val empty : t
+    val incr : key -> t -> t
+    val count : key -> t -> int Option.t
+    val cardinal : t -> int
+    val of_list : key list -> t
+  end
+
+  module type OrderedType = sig
+    type t
+
+    val compare : t -> t -> int
+  end
+
+  module Make (Ord : OrderedType) = struct
+    module KeyMap = Map.Make (Ord)
+
+    type key = Ord.t
+    type t = int KeyMap.t
+
+    let empty = KeyMap.empty
+
+    let incr key map =
+      KeyMap.update key (function Some c -> Some (c + 1) | None -> Some 1) map
+
+    let count key map = KeyMap.find_opt key map
+    let cardinal = KeyMap.cardinal
+    let of_list = List.fold_left (fun map key -> incr key map) empty
+  end
+end
+
 module IntList = struct
   let sum = List.fold_left (fun acc x -> acc + x) 0
 
@@ -99,7 +135,7 @@ module Point = struct
   let compare p0 p1 =
     let x_comp = compare (x p0) (x p1) in
     let y_comp = compare (y p0) (y p1) in
-    if x_comp = 0 then y_comp else x_comp
+    if y_comp = 0 then x_comp else y_comp
 end
 
 module Matrix = struct
@@ -121,6 +157,22 @@ module Matrix = struct
     List.filter
       (fun (x, y) -> 0 <= x && x < width && 0 <= y && y < height)
       [ (x - 1, y); (x + 1, y); (x, y - 1); (x, y + 1) ]
+
+  let all_neighbor_coords (x, y) m =
+    let height = List.length m in
+    let width = List.length (List.nth m 0) in
+    List.filter
+      (fun (x, y) -> 0 <= x && x < width && 0 <= y && y < height)
+      [
+        (x - 1, y);
+        (x - 1, y - 1);
+        (x - 1, y + 1);
+        (x + 1, y);
+        (x + 1, y - 1);
+        (x + 1, y + 1);
+        (x, y - 1);
+        (x, y + 1);
+      ]
 
   let neighbors p m = neighbor_coords p m |> List.map (Fun.flip get m)
 
