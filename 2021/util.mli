@@ -1,7 +1,5 @@
 val flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
-
 val map_lines : string -> (string -> 'a) -> 'a list
-
 val lines : string -> string list
 
 val parse_int : string -> int * string
@@ -12,6 +10,8 @@ val skip_ws : string -> string
 
 val skip_token : string -> string -> string
 (** skip_token token s *)
+
+val memo_rec : (('a -> 'b) -> 'a -> 'b) -> 'a -> 'b
 
 module Grid : sig
   type 'a t
@@ -61,9 +61,15 @@ module Counter : sig
 
     val empty : t
     val incr : key -> t -> t
-    val count : key -> t -> int Option.t
+    val incr_by : key -> int -> t -> t
+    val decr : key -> t -> t
+    val decr_by : key -> int -> t -> t
+    val count : key -> t -> int
     val cardinal : t -> int
     val of_list : key list -> t
+    val max : t -> key * int
+    val min : t -> key * int
+    val bindings : t -> (key * int) list
   end
 
   module type OrderedType = sig

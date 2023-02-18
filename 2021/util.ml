@@ -27,6 +27,17 @@ let skip_ws s = String.to_seq s |> Seq.drop_while is_ws |> String.of_seq
 (** skip_token token s *)
 let skip_token token s = String.(sub s (length token) (length s - length token))
 
+let memo_rec f =
+  let m = ref [] in
+  let rec g x =
+    try List.assoc x !m
+    with Not_found ->
+      let y = f g x in
+      m := (x, y) :: !m;
+      y
+  in
+  g
+
 module Grid = struct
   type 'a t = 'a Array.t Array.t
 
@@ -89,9 +100,15 @@ module Counter = struct
 
     val empty : t
     val incr : key -> t -> t
-    val count : key -> t -> int Option.t
+    val incr_by : key -> int -> t -> t
+    val decr : key -> t -> t
+    val decr_by : key -> int -> t -> t
+    val count : key -> t -> int
     val cardinal : t -> int
     val of_list : key list -> t
+    val max : t -> key * int
+    val min : t -> key * int
+    val bindings : t -> (key * int) list
   end
 
   module type OrderedType = sig
@@ -108,12 +125,27 @@ module Counter = struct
 
     let empty = KeyMap.empty
 
-    let incr key map =
-      KeyMap.update key (function Some c -> Some (c + 1) | None -> Some 1) map
+    let incr_by key i =
+      KeyMap.update key (function Some c -> Some (c + i) | None -> Some i)
 
-    let count key map = KeyMap.find_opt key map
+    let incr key = incr_by key 1
+    let decr_by key i = incr_by key (-i)
+    let decr key = decr_by key 1
+    let count key map = KeyMap.find_opt key map |> Option.value ~default:0
     let cardinal = KeyMap.cardinal
     let of_list = List.fold_left (fun map key -> incr key map) empty
+
+    let max ctr =
+      KeyMap.bindings ctr
+      |> List.sort (fun (_, x) (_, x') -> Int.compare x x')
+      |> List.rev |> Fun.flip List.nth 0
+
+    let min ctr =
+      KeyMap.bindings ctr
+      |> List.sort (fun (_, x) (_, x') -> Int.compare x x')
+      |> Fun.flip List.nth 0
+
+    let bindings = KeyMap.bindings
   end
 end
 

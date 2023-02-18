@@ -55,10 +55,7 @@ let flash octopi =
       (* increment those coordinates unless they're 0 *)
       let octopi =
         Matrix.map
-          (fun c o ->
-            Octopus.update
-              (PointCounter.count c incr |> Option.value ~default:0)
-              o)
+          (fun c o -> Octopus.update (PointCounter.count c incr) o)
           octopi
       in
       loop octopi (to_incr octopi)
