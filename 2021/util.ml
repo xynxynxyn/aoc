@@ -206,6 +206,7 @@ module Matrix = struct
         (x, y + 1);
       ]
 
+  let neighborsi p m = neighbor_coords p m |> List.map (fun p -> (p, get p m))
   let neighbors p m = neighbor_coords p m |> List.map (Fun.flip get m)
 
   let map f m =

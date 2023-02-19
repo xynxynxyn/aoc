@@ -104,6 +104,7 @@ module Matrix : sig
   val neighbor_coords : int * int -> 'a t -> (int * int) list
   val all_neighbor_coords : int * int -> 'a t -> (int * int) list
   val neighbors : int * int -> 'a t -> 'a list
+  val neighborsi : int * int -> 'a t -> ((int * int) * 'a) list
   val map : (int * int -> 'a -> 'b) -> 'a t -> 'b t
   val filteri : (int * int -> 'a -> bool) -> 'a t -> 'a list
   val filter : ('a -> bool) -> 'a t -> 'a list
