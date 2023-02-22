@@ -11,7 +11,7 @@ val skip_ws : string -> string
 val skip_token : string -> string -> string
 (** skip_token token s *)
 
-val memo_rec : (('a -> 'b) -> 'a -> 'b) -> 'a -> 'b
+val combinations : 'a list -> 'b list -> ('a * 'b) list
 
 module Grid : sig
   type 'a t

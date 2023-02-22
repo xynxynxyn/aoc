@@ -27,16 +27,8 @@ let skip_ws s = String.to_seq s |> Seq.drop_while is_ws |> String.of_seq
 (** skip_token token s *)
 let skip_token token s = String.(sub s (length token) (length s - length token))
 
-let memo_rec f =
-  let m = ref [] in
-  let rec g x =
-    try List.assoc x !m
-    with Not_found ->
-      let y = f g x in
-      m := (x, y) :: !m;
-      y
-  in
-  g
+let combinations xs ys =
+  List.map (fun x -> List.map (fun y -> (x, y)) ys) xs |> List.flatten
 
 module Grid = struct
   type 'a t = 'a Array.t Array.t
