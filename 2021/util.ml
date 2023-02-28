@@ -13,7 +13,7 @@ let lines file =
   loop ()
 
 let map_lines file f = List.map f (lines file)
-let is_digit = function '0' .. '9' -> true | _ -> false
+let is_digit = function '+' | '-' | '0' .. '9' -> true | _ -> false
 let is_ws = function ' ' | '\t' | '\r' | '\n' -> true | _ -> false
 
 let parse_int s =
@@ -167,6 +167,19 @@ module Matrix = struct
 
   let dimensions m = (List.length (List.nth m 0), List.length m)
   let get (x, y) m = List.nth (List.nth m y) x
+
+  let rec zip_append l lx =
+    match (l, lx) with
+    | [], [] -> []
+    | x :: xs, y :: ys -> (x :: y) :: zip_append xs ys
+    | _ -> raise (Failure "zip_append")
+
+  let columns m =
+    let width, _ = dimensions m in
+    List.fold_left
+      (fun acc row -> zip_append row acc)
+      (List.init width (fun _ -> []))
+      m
 
   let coords m =
     let width, height = dimensions m in

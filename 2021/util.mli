@@ -100,6 +100,7 @@ module Matrix : sig
 
   val dimensions : 'a t -> int * int
   val get : int * int -> 'a t -> 'a
+  val columns : 'a t -> 'a list list
   val coords : 'a t -> (int * int) list
   val neighbor_coords : int * int -> 'a t -> (int * int) list
   val all_neighbor_coords : int * int -> 'a t -> (int * int) list
