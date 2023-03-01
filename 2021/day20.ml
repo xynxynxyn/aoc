@@ -68,6 +68,9 @@ let enhance n iea image =
 
 let main =
   let iea, image = lines Sys.argv.(1) |> parse in
+  enhance 2 iea image
+  |> List.fold_left (fun acc row -> IntList.sum row + acc) 0
+  |> printf "part1: %d\n";
   enhance 50 iea image
   |> List.fold_left (fun acc row -> IntList.sum row + acc) 0
-  |> printf "part1: %d\n"
+  |> printf "part2: %d\n"
