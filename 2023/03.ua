@@ -11,10 +11,10 @@ Neighbors ← (
 NumsAdjacentTo ← (
   /↥ Neighbors
   IsDigit.:
-  ⊃(↧⊙⋅∘|⊙∘)                # [digits next to symbols] [digits] [input]
-  ⍥(↥⊃(=2+⊙⋅∘|⋅⊙∘)⬚0≡↻1.)2  # Shift left/right to nsum
-  ⍥(↥⊃(=2+⊙⋅∘|⋅⊙∘)⬚0≡↻¯1.)2 # adjacent digits
-  ▽≠0.♭⬚0≡(⊜parse);:        # Parse the numbers and put them all in one array
+  ⊃(↧⊙⋅∘|⊙∘)               # [digits next to symbols] [digits] [input]
+  ⍥(↥⊃(=2+⊙⋅∘|⋅⊙∘)⬚0≡↻1.)2 # Shift left/right to mark all adjacent digits
+  ⍥(↥⊃(=2+⊙⋅∘|⋅⊙∘)⬚0≡↻¯1.)
+  ▽≠0.♭⬚0≡(⊜parse);: # Parse the numbers and put them all in one array
 )
 
 PartOne ← (
