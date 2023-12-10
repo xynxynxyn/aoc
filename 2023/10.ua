@@ -19,7 +19,6 @@
   ⊢▽⊃(¬≡≍⊙(¤⊢)⊙⋅∘|∘|⊂⋅⊙⊙∘)
 )(⊢¬∊¤)
 ⊃(⋅⊙∘|÷2⧻⋅∘)
-=0⧻
 °⊚
 ⬚0×⊙(⊗:".|FL7J")
 # Go through each line and toggle inside/outside
