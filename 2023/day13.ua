@@ -10,7 +10,7 @@ Solve! ← (
     (+1⊙;|×1e2+1⊗1;)=⊃(⧻|.⊗1)
   )
 )
-&fras "input.txt";
-⊜(□⊜(∘)≠@\n.)¬⌕"\n\n".
+&fras "input.txt"
+⊜(□⊜∘≠@\n.)¬⌕"\n\n".
 # Comparison functions
 ⊃(Solve!(=2/+♭≠)|Solve!≍)
